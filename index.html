@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>İndirici</title>
+<style>
+  :root {
+    --bg: #08080c;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --border: #24242f;
+    --text: #f0f0f4;
+    --text-dim: #8a8a99;
+    --text-faint: #51515f;
+    --accent: #ff5c35;
+    --accent-dim: rgba(255, 92, 53, 0.12);
+    --success: #34d399;
+    --error: #fb7185;
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    line-height: 1.5;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+  }
+
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(255, 92, 53, 0.25);
+    margin-bottom: 18px;
+  }
+
+  .mark svg { width: 20px; height: 20px; }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .header p {
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+
+  /* Input card */
+  .input-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 14px 14px;
+    color: var(--text);
+    font-size: 15px;
+    outline: none;
+    min-width: 0;
+  }
+
+  input[type="text"]::placeholder { color: var(--text-faint); }
+
+  button {
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s, transform 0.05s, opacity 0.15s;
+  }
+
+  button:active { transform: scale(0.97); }
+
+  .fetch-btn {
+    background: var(--accent);
+    color: #0a0a0a;
+    font-size: 14px;
+    padding: 13px 18px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .fetch-btn svg { width: 15px; height: 15px; }
+
+  /* Status line */
+  .status {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 4px 8px 2px;
+  }
+
+  .status.active { display: flex; }
+  .status.error { color: var(--error); }
+
+  .spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Result card */
+  .result {
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    animation: rise 0.35s ease;
+  }
+
+  .result.active { display: flex; }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .video-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .thumb-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--surface-2);
+    overflow: hidden;
+  }
+
+  .thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .duration-tag {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .video-meta {
+    padding: 14px 16px;
+  }
+
+  .video-meta .title {
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1.4;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .video-meta .author {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  .download-btn {
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+  }
+
+  .download-btn button {
+    width: 100%;
+    background: var(--success);
+    color: #052e22;
+    font-size: 15px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .download-btn button svg { width: 17px; height: 17px; }
+
+  .quality-pill {
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(5, 46, 34, 0.18);
+    padding: 3px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.03em;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+
+  /* Small screens */
+  @media (max-width: 380px) {
+    h1 { font-size: 22px; }
+    .input-row { flex-wrap: wrap; }
+    .fetch-btn { width: 100%; justify-content: center; }
+    input[type="text"] { padding: 14px 10px; }
+  }
+
+  /* Focus visibility */
+  input[type="text"]:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <span class="mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M5 14V18C5 19.1046 5.89543 20 7 20H17C18.1046 20 19 19.1046 19 18V14" stroke="#ff5c35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M12 3V14M12 14L8 10M12 14L16 10" stroke="#ff5c35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <h1>Video İndirici</h1>
+    <p>Linki yapıştır, 1080p kalitede kaydet.</p>
+  </div>
+
+  <div class="input-card">
+    <div class="input-row">
+      <input type="text" id="urlInput" placeholder="youtube.com/watch?v=..." inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="fetch-btn" id="fetchBtn">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Getir
+      </button>
+    </div>
+    <div class="status" id="status">
+      <span class="spinner" id="spinner"></span>
+      <span id="statusText"></span>
+    </div>
+  </div>
+
+  <div class="result" id="result">
+    <div class="video-card">
+      <div class="thumb-wrap">
+        <img id="thumb" src="" alt="">
+        <span class="duration-tag" id="duration"></span>
+      </div>
+      <div class="video-meta">
+        <div class="title" id="videoTitle"></div>
+        <div class="author" id="videoAuthor"></div>
+      </div>
+    </div>
+    <a class="download-btn" id="downloadBtn" href="#" download>
+      <button>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3V15M12 15L7 10M12 15L17 10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 19H19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        İndir
+        <span class="quality-pill">1080p MP4</span>
+      </button>
+    </a>
+  </div>
+
+  <p class="footer">Kişisel kullanım amaçlıdır.</p>
+
+</div>
+
+<script>
+  const urlInput = document.getElementById('urlInput');
+  const fetchBtn = document.getElementById('fetchBtn');
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  const spinner = document.getElementById('spinner');
+  const resultEl = document.getElementById('result');
+  const thumbEl = document.getElementById('thumb');
+  const durationEl = document.getElementById('duration');
+  const titleEl = document.getElementById('videoTitle');
+  const authorEl = document.getElementById('videoAuthor');
+  const downloadBtn = document.getElementById('downloadBtn');
+
+  function showStatus(msg, isError = false, showSpinner = true) {
+    statusText.textContent = msg;
+    statusEl.className = 'status active' + (isError ? ' error' : '');
+    spinner.style.display = showSpinner ? 'inline-block' : 'none';
+  }
+
+  function hideStatus() {
+    statusEl.className = 'status';
+  }
+
+  function formatDuration(seconds) {
+    if (!seconds) return '';
+    const s = Math.floor(seconds % 60).toString().padStart(2, '0');
+    const m = Math.floor(seconds / 60);
+    return `${m}:${s}`;
+  }
+
+  async function fetchInfo() {
+    const url = urlInput.value.trim();
+    if (!url) {
+      showStatus('Lütfen bir YouTube linki girin.', true, false);
+      return;
+    }
+
+    resultEl.classList.remove('active');
+    fetchBtn.disabled = true;
+    showStatus('Video bilgisi alınıyor...');
+
+    try {
+      const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        showStatus(data.error || 'Bir hata oluştu.', true, false);
+        return;
+      }
+
+      thumbEl.src = data.thumbnail || '';
+      titleEl.textContent = data.title || 'Başlıksız';
+      authorEl.textContent = data.author || '';
+      durationEl.textContent = formatDuration(data.duration);
+      durationEl.style.display = data.duration ? 'block' : 'none';
+      downloadBtn.href = `/api/download?url=${encodeURIComponent(url)}`;
+
+      resultEl.classList.add('active');
+      hideStatus();
+    } catch (err) {
+      showStatus('Sunucuya bağlanılamadı.', true, false);
+    } finally {
+      fetchBtn.disabled = false;
+    }
+  }
+
+  fetchBtn.addEventListener('click', fetchInfo);
+
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') fetchInfo();
+  });
+</script>
+
+</body>
+</html>
